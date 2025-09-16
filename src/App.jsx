@@ -18,7 +18,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import UserPage from "./pages/UserPage";
 import AdminPage from "./pages/AdminPage";
 import QuizPage from "./pages/QuizPage";
-import UserProfilePage from "/pages/UserProfilePage";
+import UserProfilePage from "./pages/UserProfilePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import OAuth2RedirectHandler from "./pages/OAuth2RedirectHandler"; // Import the new component

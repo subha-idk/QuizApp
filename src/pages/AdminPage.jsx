@@ -1,11 +1,11 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import styled from "styled-components";
-
+ 
 import QuestionManagement from "../components/admin/QuestionManagement";
 import QuizManagement from "../components/admin/QuizManagement";
 import QuizBuilder from "../components/admin/QuizBuilder"; // Import the new component
-import UserProfilePage from "UserProfilePage";
+import UserProfilePage from "./UserProfilePage"; // Import the user profile page
 
 const PageWrapper = styled.div`
   padding: 1rem;

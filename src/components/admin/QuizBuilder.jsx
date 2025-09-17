@@ -131,11 +131,9 @@ const QuizBuilder = () => {
     };
 
     const availableQuestions = useMemo(() => {
-        // FIX: Safely handle the initial null state for the quiz object.
-        // If quiz or quiz.questions doesn't exist yet, use an empty array as a fallback.
-        const quizQuestionIds = new Set(
-            (quiz?.questions || []).map(q => q.qid ?? q.qId)
-        );
+        // FIX: Add a more explicit check to ensure quiz and quiz.questions exist.
+        const currentQuizQuestions = (quiz && quiz.questions) ? quiz.questions : [];
+        const quizQuestionIds = new Set(currentQuizQuestions.map(q => q.qid ?? q.qId));
         
         return allQuestions
             .filter(q => !quizQuestionIds.has(q.qId))
@@ -177,8 +175,9 @@ const QuizBuilder = () => {
                 </Column>
 
                 <Column>
-                    <ColumnTitle>Questions in this Quiz ({quiz.questions?.length || 0})</ColumnTitle>
-                    {(quiz.questions || []).map(q => {
+                    {/* FIX: Add explicit check here as well */}
+                    <ColumnTitle>Questions in this Quiz ({(quiz.questions && quiz.questions.length) || 0})</ColumnTitle>
+                    {(quiz.questions && quiz.questions.length > 0) && quiz.questions.map(q => {
                         const questionId = q.qid ?? q.qId;
                         return (
                             <QuestionCard key={questionId} layout>
@@ -194,5 +193,4 @@ const QuizBuilder = () => {
 };
 
 export default QuizBuilder;
-
 

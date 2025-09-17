@@ -5,6 +5,8 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { FaUser, FaLock, FaGoogle, FaGithub } from 'react-icons/fa';
 
+const BACKEND_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const AuthPageWrapper = styled.div`
   display: flex;
   justify-content: center;
@@ -173,10 +175,10 @@ const LoginPage = () => {
                 </BrandPanel>
                 <FormPanel>
                     <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Welcome Back!</h2>
-                    <OAuthButton href="http://localhost:8080/oauth2/authorization/google">
+                    <OAuthButton href={`${BACKEND_BASE_URL}/oauth2/authorization/google`}>
                         <FaGoogle /> Sign in with Google
                     </OAuthButton>
-                    <OAuthButton href="http://localhost:8080/oauth2/authorization/github">
+                    <OAuthButton href={`${BACKEND_BASE_URL}/oauth2/authorization/github`}>
                         <FaGithub /> Sign in with GitHub
                     </OAuthButton>
                     <Divider>OR</Divider>

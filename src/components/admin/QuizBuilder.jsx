@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { getAllQuestions, getQuizById, addQuestionToQuiz, removeQuestionFromQuiz } from '../../api/api';
@@ -73,7 +73,6 @@ const ActionButton = styled.button`
 
 const QuizBuilder = () => {
     const { quizId } = useParams();
-    const navigate = useNavigate();
     const [quiz, setQuiz] = useState(null);
     const [allQuestions, setAllQuestions] = useState([]);
     const [filters, setFilters] = useState({ search: '', category: 'all', difficulty: 'all' });
@@ -109,17 +108,17 @@ const QuizBuilder = () => {
     };
 
     const handleRemoveQuestion = async (questionId) => {
-        if (!questionId) {
+        const idToRemove = questionId;
+        if (!idToRemove) {
             console.error("Attempted to remove a question with an undefined ID.");
             alert("Error: Cannot remove question due to an invalid ID.");
             return;
         }
         try {
-            await removeQuestionFromQuiz(quizId, questionId);
-            
+            await removeQuestionFromQuiz(quizId, idToRemove);
             setQuiz(prevQuiz => ({
                 ...prevQuiz,
-                questions: prevQuiz.questions.filter(q => q.qid !== questionId)
+                questions: prevQuiz.questions.filter(q => (q.qid ?? q.qId) !== idToRemove)
             }));
         } catch (error) {
             console.error("Failed to remove question:", error);
@@ -132,10 +131,12 @@ const QuizBuilder = () => {
     };
 
     const availableQuestions = useMemo(() => {
-        // FIX: Create a set of IDs from the quiz questions, using the correct 'qid' property.
-        const quizQuestionIds = new Set(quiz?.questions.map(q => q.qid));
+        // FIX: Safely handle the initial null state for the quiz object.
+        // If quiz or quiz.questions doesn't exist yet, use an empty array as a fallback.
+        const quizQuestionIds = new Set(
+            (quiz?.questions || []).map(q => q.qid ?? q.qId)
+        );
         
-        // Now, correctly filter the main 'allQuestions' list (which uses 'qId')
         return allQuestions
             .filter(q => !quizQuestionIds.has(q.qId))
             .filter(q => q.questionTitle.toLowerCase().includes(filters.search.toLowerCase()))
@@ -176,13 +177,16 @@ const QuizBuilder = () => {
                 </Column>
 
                 <Column>
-                    <ColumnTitle>Questions in this Quiz ({quiz.questions.length})</ColumnTitle>
-                    {quiz.questions.map(q => (
-                        <QuestionCard key={q.qid} layout>
-                            <span>{q.questionTitle}</span>
-                            <ActionButton color="danger" onClick={() => handleRemoveQuestion(q.qid)}><FaTrash /></ActionButton>
-                        </QuestionCard>
-                    ))}
+                    <ColumnTitle>Questions in this Quiz ({quiz.questions?.length || 0})</ColumnTitle>
+                    {(quiz.questions || []).map(q => {
+                        const questionId = q.qid ?? q.qId;
+                        return (
+                            <QuestionCard key={questionId} layout>
+                                <span>{q.questionTitle}</span>
+                                <ActionButton color="danger" onClick={() => handleRemoveQuestion(questionId)}><FaTrash /></ActionButton>
+                            </QuestionCard>
+                        )
+                    })}
                 </Column>
             </BuilderWrapper>
         </>
@@ -190,4 +194,5 @@ const QuizBuilder = () => {
 };
 
 export default QuizBuilder;
+
 

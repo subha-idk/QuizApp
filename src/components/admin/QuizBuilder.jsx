@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import { getAllQuestions, getQuizById, addQuestionToQuiz, removeQuestionFromQuiz } from '../../api/api';
@@ -73,6 +73,7 @@ const ActionButton = styled.button`
 
 const QuizBuilder = () => {
     const { quizId } = useParams();
+    const navigate = useNavigate();
     const [quiz, setQuiz] = useState(null);
     const [allQuestions, setAllQuestions] = useState([]);
     const [filters, setFilters] = useState({ search: '', category: 'all', difficulty: 'all' });
@@ -189,3 +190,4 @@ const QuizBuilder = () => {
 };
 
 export default QuizBuilder;
+

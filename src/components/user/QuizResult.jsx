@@ -1,13 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaCheck, FaTimes } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaQuestion } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 const PageWrapper = styled(motion.div)`
   padding: 1rem;
   width: 100%;
-  max-width: 600px;
+  max-width: 700px;
   margin: auto;
   display: flex;
   flex-direction: column;
@@ -32,19 +32,31 @@ const Score = styled.p`
 
 const ResultItem = styled(motion.div)`
   background-color: white;
-  padding: 1rem;
+  padding: 1.2rem;
   border-radius: 8px;
   margin-bottom: 1rem;
-  border-left: 5px solid ${({ theme, isCorrect }) => (isCorrect ? theme.colors.secondary : theme.colors.danger)};
+  border-left: 5px solid ${({ theme, isCorrect }) => (isCorrect ? theme.colors.success : theme.colors.danger)};
   box-shadow: ${({ theme }) => theme.shadows.soft};
   width: 100%;
+  text-align: left;
+`;
 
-  p {
-      margin: 0.5rem 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-  }
+const QuestionTitle = styled.h4`
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+`;
+
+const AnswerLine = styled.p`
+    margin: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: ${({ color }) => color || '#333'};
+
+    svg {
+        flex-shrink: 0;
+    }
 `;
 
 const HomeButton = styled(motion.button)`
@@ -68,9 +80,7 @@ const QuizResult = ({ result }) => {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
+            transition: { staggerChildren: 0.1 }
         }
     };
 
@@ -92,7 +102,7 @@ const QuizResult = ({ result }) => {
                 <p>You answered {score} out of {questionResults.length} questions correctly.</p>
             </ResultCard>
 
-            <motion.h3 style={{ marginTop: '2rem' }} variants={itemVariants}>
+            <motion.h3 style={{ marginTop: '2.5rem', marginBottom: '1.5rem' }} variants={itemVariants}>
                 Detailed Results
             </motion.h3>
 
@@ -102,14 +112,24 @@ const QuizResult = ({ result }) => {
                     isCorrect={res.isCorrect}
                     variants={itemVariants}
                 >
-                    <p>
-                        <span><strong>Your Answer:</strong> {res.userAnswer || "Not answered"}</span>
-                        {res.isCorrect ? <FaCheck style={{ color: 'green' }} /> : <FaTimes style={{ color: 'red' }} />}
-                    </p>
-                    {!res.isCorrect && (
-                        <p>
-                            <span><strong>Correct Answer:</strong> {res.correctAnswer}</span>
-                        </p>
+                    <QuestionTitle>{res.questionTitle}</QuestionTitle>
+                    
+                    {res.isCorrect ? (
+                        <AnswerLine color="#27ae60">
+                            <FaCheck />
+                            <span><strong>Your Answer:</strong> {res.userAnswer}</span>
+                        </AnswerLine>
+                    ) : (
+                        <>
+                            <AnswerLine color="#e74c3c">
+                                {res.userAnswer ? <FaTimes /> : <FaQuestion />}
+                                <span><strong>Your Answer:</strong> {res.userAnswer || "Not answered"}</span>
+                            </AnswerLine>
+                            <AnswerLine color="#27ae60">
+                                <FaCheck />
+                                <span><strong>Correct Answer:</strong> {res.correctAnswer}</span>
+                            </AnswerLine>
+                        </>
                     )}
                 </ResultItem>
             ))}

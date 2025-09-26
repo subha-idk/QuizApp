@@ -118,7 +118,8 @@ const QuizPage = () => {
             return <QuizResult result={result} quizId={quizId} />;
 
         case 'started':
-            return <QuizTaker quizData={quizData} onSubmit={handleSubmitQuiz} />;
+            // return <QuizTaker quizData={quizData} onSubmit={handleSubmitQuiz} />;
+            return <QuizTaker quizData={quizData} onSubmit={handleSubmitQuiz} sessionId={sessionId} />;
 
         case 'ready':
         default:

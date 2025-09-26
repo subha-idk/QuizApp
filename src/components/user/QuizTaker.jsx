@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
+import { saveQuizProgress } from '../../api/api';
 
 const QuizWrapper = styled(motion.div)`
   width: 100%;
@@ -73,61 +74,65 @@ const NextButton = styled(motion.button)`
   opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 `;
 
-const QuizTaker = ({ quizData, onSubmit }) => {
+const QuizTaker = ({ quizData, onSubmit, sessionId }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [responses, setResponses] = useState([]);
+  const [responses, setResponses] = useState({});
   const [selectedOption, setSelectedOption] = useState(null);
   const [timeLeft, setTimeLeft] = useState(quizData.timeLimit * 60);
 
-  const handleSubmit = useCallback(
-    (finalResponses) => {
-      console.log("Submitting responses:", finalResponses); // Your debugger
-      onSubmit(finalResponses || responses);
-    },
-    [onSubmit, responses]
-  );
+  const handleSubmit = useCallback(() => {
+    // This function converts the responses object into the array format the backend expects for final submission.
+    const finalResponses = Object.entries(responses).map(([rId, response]) => ({
+      rId: parseInt(rId, 10),
+      response,
+    }));
+    onSubmit(finalResponses);
+  }, [onSubmit, responses]);
 
+  // FIX: This useEffect now handles the auto-submission directly.
   useEffect(() => {
+    // When the timer hits zero, call the handleSubmit function.
     if (timeLeft <= 0) {
-      handleSubmit(responses);
-      return;
+      handleSubmit();
+      return; // Stop the timer.
     }
+
+    // Otherwise, just decrement the timer every second.
     const timer = setInterval(() => {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
+
+    // Clean up the interval when the component unmounts or timeLeft changes.
     return () => clearInterval(timer);
-  }, [timeLeft, handleSubmit, responses]);
+  }, [timeLeft, handleSubmit]);
 
   const handleSelectOption = (option) => {
+    // 1. Update the UI state to show the user's selection.
     setSelectedOption(option);
+
+    const currentQuestion = quizData.questions[currentQuestionIndex];
+    const questionId = currentQuestion.qId || currentQuestion.qid;
+
+    // 2. Update the main responses object with the new answer.
+    setResponses(prev => ({ ...prev, [questionId]: option }));
+    
+    // 3. Save the progress to the backend in the background (fire and forget).
+    if (sessionId && questionId) {
+        saveQuizProgress(sessionId, { questionId: questionId, response: option })
+            .then(() => console.log(`Progress saved for question ${questionId}`))
+            .catch(err => {
+                console.error("Auto-save progress failed:", err);
+            });
+    }
   };
 
   const handleNextQuestion = () => {
-    const currentQuestion = quizData.questions[currentQuestionIndex];
-
-    // **DEBUGGING STEP:** This will log the entire question object.
-    // Check your browser's console to see all its properties and find the correct ID name.
-    console.log("Current Question Object:", currentQuestion);
-
-    // **FIX:** Safely find the question ID. Your backend might send it as 'id', 'qId', 'questionId', etc.
-    const questionId =
-      currentQuestion.id ||
-      currentQuestion.qId ||
-      currentQuestion.qid || // <-- add this line
-      currentQuestion.questionId;
-
-    const newResponse = {
-      rId: questionId,
-      response: selectedOption,
-    };
-    const updatedResponses = [...responses, newResponse];
-    setResponses(updatedResponses);
-    setSelectedOption(null);
-
+    // If it's the last question, submit the quiz.
     if (currentQuestionIndex < quizData.questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
+      setSelectedOption(null); // Reset selection for the next question.
     } else {
-      handleSubmit(updatedResponses);
+      handleSubmit();
     }
   };
 
@@ -135,13 +140,12 @@ const QuizTaker = ({ quizData, onSubmit }) => {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
-  // Manually create an array of options from the separate properties.
   const currentOptions = [
     currentQuestion.option1,
     currentQuestion.option2,
     currentQuestion.option3,
     currentQuestion.option4,
-  ].filter((option) => option != null); // Filter out any null/undefined options
+  ].filter((option) => option != null);
 
   return (
     <QuizWrapper>
@@ -164,11 +168,7 @@ const QuizTaker = ({ quizData, onSubmit }) => {
 
       <AnimatePresence mode="wait">
         <QuestionTitle
-          key={
-            currentQuestion.id ||
-            currentQuestion.qId ||
-            currentQuestion.questionId
-          }
+          key={currentQuestion.qId || currentQuestion.qid}
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 50 }}
@@ -179,7 +179,6 @@ const QuizTaker = ({ quizData, onSubmit }) => {
       </AnimatePresence>
 
       <div>
-        {/* Map over the manually created options array */}
         {currentOptions.map((option, index) => (
           <OptionButton
             key={index}
@@ -191,13 +190,13 @@ const QuizTaker = ({ quizData, onSubmit }) => {
           </OptionButton>
         ))}
       </div>
-
+      
       <NextButton
-        onClick={handleNextQuestion}
-        disabled={!selectedOption}
-        whileTap={{ scale: 0.95 }}
+          onClick={handleNextQuestion}
+          disabled={!selectedOption}
+          whileTap={{ scale: 0.95 }}
       >
-        {currentQuestionIndex < quizData.questions.length - 1
+          {currentQuestionIndex < quizData.questions.length - 1
           ? "Next"
           : "Submit"}
       </NextButton>
@@ -206,3 +205,4 @@ const QuizTaker = ({ quizData, onSubmit }) => {
 };
 
 export default QuizTaker;
+

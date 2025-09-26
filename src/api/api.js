@@ -88,6 +88,14 @@ export const getAllQuizzes = () => API.get('/quiz/all');
  */
 export const startQuiz = (quizId, sessionId) => API.post(`/quiz/start/${quizId}`, null, { params: { sessionId } });
 
+/**
+ * Saves a user's answer for a single question during a quiz.
+ * @param {string} sessionId - The unique session ID for the quiz attempt.
+ * @param {object} progressData - { questionId, response }
+ * @returns {Promise} Axios promise
+ */
+export const saveQuizProgress = (sessionId, progressData) => API.post(`/quiz/${sessionId}/progress`, progressData);
+
 
 /**
  * Submits the user's answers for scoring.
